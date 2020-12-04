@@ -108,4 +108,46 @@ public class Archivo {
         }
     }
 
+        public void EliminarCarpeta(File path) {
+        try {
+            if (!path.isDirectory()) {
+                path.delete();
+            } else {
+                File[] archivos = path.listFiles();
+                for (int i = 0; i < archivos.length; i++) {
+                    if (archivos[i].isDirectory()) {
+                        Archivo a = new Archivo(archivos[i].getAbsolutePath());
+                        a.EliminarCarpeta(a.path);
+                    } else {
+                        Eliminar(archivos[i]);
+
+                    }
+                }
+                path.delete();
+            }
+
+        } catch (Exception e) {
+
+        }
+    }
+
+    public void Eliminar() {
+        try {
+            if (!path.isDirectory()) {
+                path.delete();
+            } else {
+                EliminarCarpeta(path);
+            }
+        } catch (Exception e) {
+
+        }
+    }
+
+    public void Eliminar(File path) {
+        try {
+            path.delete();
+        } catch (Exception e) {
+
+        }
+    }
 }

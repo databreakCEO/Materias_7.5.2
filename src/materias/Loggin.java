@@ -70,7 +70,7 @@ public class Loggin extends javax.swing.JFrame {
             image = Imagenes.getScaledImage(icon.getImage(), this.labelCircular.getWidth(), this.labelCircular.getHeight());
             this.labelCircular.setIcon(new ImageIcon(image));
             jPanel1.add(labelCircular);
-            
+
             icon = new ImageIcon(getClass().getResource("/Imagenes/papelera.png"));
             image = Imagenes.getScaledImage(icon.getImage(), this.jLabelPapelera.getWidth(), this.jLabelPapelera.getHeight());
             this.jLabelPapelera.setIcon(new ImageIcon(image));
@@ -310,7 +310,7 @@ public class Loggin extends javax.swing.JFrame {
                 jLabelPapeleraMouseClicked(evt);
             }
         });
-        getContentPane().add(jLabelPapelera, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 320, 30, 30));
+        getContentPane().add(jLabelPapelera, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 330, 30, 30));
 
         jLabel2.setBackground(new java.awt.Color(255, 255, 255));
         jLabel2.setOpaque(true);
@@ -322,7 +322,7 @@ public class Loggin extends javax.swing.JFrame {
     public void crearFrameCuenta() {
         try {
             // Se crea el frame Cuenta y se visualiza 
-            c = new Cuenta(this,this.carrera, this.carrera + "\\Usuarios\\" + numControl, numControl, pass);
+            c = new Cuenta(this, this.carrera, this.carrera + "\\Usuarios\\" + numControl, numControl, pass);
             c.setVisible(true);
             this.setVisible(false);
 
@@ -351,7 +351,7 @@ public class Loggin extends javax.swing.JFrame {
         //        pass ="1234";
         //        String usuario = "16130809";
         //        pass = "fullcounter";
-        
+
         String usuario = jTextUser.getText();
         pass = jTextPass.getText();
 
@@ -502,7 +502,7 @@ public class Loggin extends javax.swing.JFrame {
                                     for (int j = 0; j < lista.size(); j++) {
                                         coincide = false;
                                         for (String[] kard1 : kard) {
-                                            if (lista.get(j).equals(kard1[1]) && Integer.valueOf(kard1[2])>=70) {
+                                            if (lista.get(j).equals(kard1[1]) && Integer.valueOf(kard1[2]) >= 70) {
                                                 coincide = true;
                                                 break;
                                             }
@@ -586,10 +586,9 @@ public class Loggin extends javax.swing.JFrame {
                 }
 
             } else {
-                JOptionPane.showMessageDialog(this, "No se ha podido iniciar sesión con este numero de control, asegúrese de tener internet y ser alumno del Instituto Tecnologico de la Laguna");
+                JOptionPane.showMessageDialog(this, "No se ha podido iniciar sesión con este numero de control, verifique que la contraseña sea correcta.\n Asegúrese de tener internet y ser alumno del Instituto Tecnologico de la Laguna");
             }
-        } 
-        //En caso de que la carpeta del alumno ya exista, tan tolo se accederá
+        } //En caso de que la carpeta del alumno ya exista, tan tolo se accederá
         //al archivo de datos del usuario, necesarios para la creacion de el 
         //frame "Cuenta"
         else {
@@ -656,10 +655,40 @@ public class Loggin extends javax.swing.JFrame {
 
     private void jLabelPapeleraMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelPapeleraMouseClicked
         // TODO add your handling code here:
-        if(jTextUser.getText()!=null && jTextUser.getText().length()>0){
-            
-        }else
-        JOptionPane.showMessageDialog(this, "Ingrese el número de control del que quiere borrar los registros guardados en su sistema.");
+
+        if (jTextUser.getText() != null && jTextUser.getText().length() > 0) {
+            Archivo logs = new Archivo("logs.txt");
+            logs.crearLectura();
+            String linea = "";
+            boolean encontrado = false;
+            ArrayList<String> lineas = new ArrayList<>();
+            String[] split = {"", ""};
+            while ((linea = logs.LeerLinea()) != null) {
+                split = linea.split(" - ");
+                if (split[0].equals(jTextUser.getText())) {
+                    encontrado = true;
+                    break;
+                } else {
+                    lineas.add(linea);
+                }
+            }
+            if (encontrado) {
+                logs.crearEscritura();
+                Archivo carpetaAEliminar = new Archivo(split[1] + "\\Usuarios\\" + split[0]);
+                carpetaAEliminar.Eliminar();
+                JOptionPane.showMessageDialog(this, "Los registros del usuario con el numero de control " + split[0] + " han sido eliminados.");
+                for (int i = 0; i < lineas.size(); i++) {
+                    logs.EscribirLinea(lineas.get(i));
+                    if(i<lineas.size()-1){
+                        logs.NuevaLinea();
+                    }
+                    
+                }
+            }
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Ingrese el número de control del que quiere borrar los registros guardados en su sistema.");
+        }
     }//GEN-LAST:event_jLabelPapeleraMouseClicked
 
     /**

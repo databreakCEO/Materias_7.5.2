@@ -50,7 +50,6 @@ public class Conexiones {
             conexion = (Connection) DriverManager.getConnection("jdbc:mysql://" + URL + ":3306/" + bd + "?autoReconnect=true&useSSL=false", user, pass);
             //JOptionPane.showMessageDialog(null,"Conexiones establecida!");
         } catch (ClassNotFoundException | SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error al conectar con la base de datos.");
 
         }
         return conexion;
@@ -83,7 +82,6 @@ public class Conexiones {
             }
             table.setModel(modelo);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
     }
 
@@ -100,7 +98,6 @@ public class Conexiones {
                 numCol++;
             }
             // st = (Statement) conexion.createStatement();
-            System.out.println(consulta);
             st = (Statement) conexion.createStatement();
 
             rs = st.executeQuery(consulta);
@@ -117,18 +114,10 @@ public class Conexiones {
             while (rs.next()) {
                 for (int i = 0; i < numCol; i++) {
                     datos[index][i] = rs.getObject(i + 1);
-//                    if (i < numCol - 1) {
-//                        texto += datos[i] + " ";
-//                        System.out.print(datos[i] + " ");
-//                    } else {
-//                        texto += datos[i] + "\n";
-//                        System.out.print(datos[i] + "\n");
-//                    }
                 }
                 index++;
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return datos;
     }
@@ -168,7 +157,6 @@ public class Conexiones {
                 index++;
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return datos;
     }
@@ -208,7 +196,6 @@ public class Conexiones {
             }
             table.setModel(modelo);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
     }
 
@@ -225,7 +212,6 @@ public class Conexiones {
                 datos[0] = rs.getString(1);
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         result = datos[0];
         return result;
@@ -255,7 +241,6 @@ public class Conexiones {
 
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
             datos[0] = "";
         }
         return datos;
@@ -284,7 +269,6 @@ public class Conexiones {
 
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
             datos[0] = "";
         }
         return datos;
@@ -320,10 +304,9 @@ public class Conexiones {
             st = (Statement) conexion.createStatement();
             ResultSet rs = st.executeQuery("select * from MateriaCursando where Num_Ctrl= '" + usuario + "';");
             while (rs.next()) {
-                datos.add(new String[]{rs.getString(2) + rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)});
+                datos.add(new String[]{rs.getString(1) + rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)});
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return datos;
     }
@@ -361,7 +344,6 @@ public class Conexiones {
                 index++;
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return datos;
     }
@@ -378,7 +360,6 @@ public class Conexiones {
             }
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         result = datos[0];
         return result;
@@ -430,7 +411,6 @@ public class Conexiones {
             psql.close();
 //            JOptionPane.showMessageDialog(null, "Exito al registrar");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(null, "Error en dar de alta, revise los datos por favor, asegúrese de que sean los indicados.");
             query = "";
         }
         return query;
@@ -442,7 +422,6 @@ public class Conexiones {
             PreparedStatement ps = conexion.prepareStatement(sql);
             ps.executeUpdate();
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en eliminación del elemento.");
 
         }
     }
@@ -460,9 +439,7 @@ public class Conexiones {
                 sql = "delete from " + tabla + " where " + condicionAtributo + " = " + campo;
                 PreparedStatement ps = conexion.prepareStatement(sql);
                 ps.executeUpdate();
-                JOptionPane.showMessageDialog(null, "Error en baja");
             } catch (SQLException ex1) {
-                JOptionPane.showMessageDialog(null, "Error en baja");
             }
         }
     }
@@ -494,7 +471,6 @@ public class Conexiones {
             PreparedStatement ps = conexion.prepareStatement(sql);
             ps.executeUpdate();
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en baja");
         }
     }
 
@@ -514,7 +490,6 @@ public class Conexiones {
             }
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error" + ex.getMessage());
         }
     }
 
@@ -542,7 +517,6 @@ public class Conexiones {
             }
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error" + ex.getMessage());
         }
         return datos;
     }
@@ -614,7 +588,6 @@ public class Conexiones {
                     ps = conexion.prepareStatement(ssql);
                     ps.executeUpdate();
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "Error en el atributo " + atributos[i] + ", no se ha podido efectuar su modificación.");
                     errMod++;
                 }
             }
@@ -665,13 +638,12 @@ public class Conexiones {
 
             connect(bd, user, pass, URL);
             st = (Statement) conexion.createStatement();
-
+            System.out.println("select * from grupo where ID_Carrera = " + carrera + " and espacioAlumnos>5 order by clave;");
             ResultSet rs = st.executeQuery("select * from grupo where ID_Carrera = " + carrera + " and espacioAlumnos>5 order by clave;");
             while (rs.next()) {
                 datos.add(rs.getString(2) + rs.getString(1));
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return datos;
     }
@@ -707,7 +679,6 @@ public class Conexiones {
                 }
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return datos;
         // return result;
@@ -734,7 +705,6 @@ public class Conexiones {
                 modelo.addRow(datos);
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         tabla.setModel(modelo);
         // return result;
@@ -772,7 +742,6 @@ public class Conexiones {
 //                }
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return result;
         // return result;
@@ -803,7 +772,6 @@ public class Conexiones {
 
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         return datos;
         // return result;
@@ -824,7 +792,6 @@ public class Conexiones {
                 datos[0] = rs.getString(1);
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Error en consulta");
         }
         result = datos[0];
         return result;

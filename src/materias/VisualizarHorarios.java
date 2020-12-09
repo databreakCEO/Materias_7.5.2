@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author Daniel Gonzalez Cabrera
  */
-public class VisualizarHorarios extends javax.swing.JFrame {
+public class VisualizarHorarios extends javax.swing.JFrame implements Runnable {
 
     /**
      * Creates new form MateriasFrame2
@@ -47,6 +47,10 @@ public class VisualizarHorarios extends javax.swing.JFrame {
     Horario horario;
     Conexiones con;
 
+    Thread t;
+    Cargando load;
+    boolean correcto = true;
+
     public VisualizarHorarios(String carrera, String nombre, Cuenta c) {
         initComponents();
         try {
@@ -54,11 +58,13 @@ public class VisualizarHorarios extends javax.swing.JFrame {
             setTitle("Horarios guardados");
             try {
                 this.setIconImage(new ImageIcon(getClass().getResource("/Imagenes/rayo.jpg")).getImage());
+                t = new Thread(this);
+                load = new Cargando();
             } catch (Exception e) {
 
             }
             this.c = c;
-            con = new Conexiones("ITLDB", "root", "", "localhost");
+            con = new Conexiones("ITLDB", "root", "", "frograment.sytes.net");
             this.setSize(1350, 718);
             colorCeldas = new ColorCeldas(jTable3);
             colorNombres = new ColorCeldas(jTable2);
@@ -396,6 +402,7 @@ public class VisualizarHorarios extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        jTable1.setToolTipText("Seleccione un renglon y oprima click secundario para ver las opciones");
         jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jTable1MouseClicked(evt);
@@ -829,55 +836,86 @@ public class VisualizarHorarios extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_formWindowClosed
 
-    private void jButEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButEnviarActionPerformed
-        // TODO add your handling code here:
-        JTextField contra = new JPasswordField();
-        Object[] message = {
-            "Password:", contra
-        };
+    public void Enviar() {
+        try {
+            JTextField contra = new JPasswordField();
+            Object[] message = {"Contraseña:", contra};
 
-        int option = JOptionPane.showConfirmDialog(null, message, "Introduzca su contraseña por favor.", JOptionPane.OK_CANCEL_OPTION);
+            int option = JOptionPane.showConfirmDialog(null, message, "Introduzca su contraseña por favor.", JOptionPane.OK_CANCEL_OPTION);
 
-        boolean loggeado = con.Loggear(nombre, contra.getText());
-        System.out.println(nombre+" "+contra.getText());
-        if (option == JOptionPane.OK_OPTION && loggeado) {
+            if (option == JOptionPane.OK_OPTION) {
+                load.setVisible(true);
+                JOptionPane.showMessageDialog(this, Alumno.numControl+" "+ contra.getText());
 
-            boolean band = true, inicio = false;
-            ArrayList<String> clavesDisponibles = con.clavesDisp("1");
-            ArrayList<String> claveNoDisponibles = new ArrayList<>();
+                boolean loggeado = con.Loggear(Alumno.numControl, contra.getText());
+                if (loggeado) {
 
-            for (int i = 0; i < horariosTerminados.size(); i++) {
-                band = true;
-                for (int j = 0; j < horariosTerminados.get(i).schedule.size(); j++) {
-                    if (band) {
-                        band = false;
-                        for (int k = 0; k < clavesDisponibles.size(); k++) {
-                            if (horariosTerminados.get(i).schedule.get(j).codigoMat.equals(clavesDisponibles.get(k))) {
+                    boolean band = true, inicio = false;
+                    int numCarrera = Alumno.NumCarrera();
+                    if (numCarrera > 0) {
+                        ArrayList<String> clavesDisponibles = con.clavesDisp(numCarrera + "");
+                        ArrayList<String> claveNoDisponibles = new ArrayList<>();
+                        if (clavesDisponibles.size() > 0) {
+                            for (int i = 0; i < horariosTerminados.size(); i++) {
                                 band = true;
+                                for (int j = 0; j < horariosTerminados.get(i).schedule.size(); j++) {
+                                    if (band) {
+                                        band = false;
+                                        for (int k = 0; k < clavesDisponibles.size(); k++) {
+                                            if (horariosTerminados.get(i).schedule.get(j).codigoMat.equals(clavesDisponibles.get(k))) {
+                                                band = true;
+                                            }
+                                        }
+                                    } else {
+                                        claveNoDisponibles.add(horariosTerminados.get(i).schedule.get(j).codigoMat);
+                                    }
+                                }
+                                if (band) {
+                                    String clave, grupo;
+                                    for (int j = 0; j < horariosTerminados.get(i).schedule.size(); j++) {
+                                        clave = horariosTerminados.get(i).schedule.get(j).codigoMat.substring(0, clavesDisponibles.get(j).length() - 1);
+                                        grupo = horariosTerminados.get(i).schedule.get(j).codigoMat.substring(clavesDisponibles.get(j).length() - 1);
+                                        Object datos[] = {null, grupo, clave, Alumno.numControl, 0, numCarrera};
+                                        con.Insert(datos, "grupoAlumno");
+                                    }
+                                    c.CrearArchivoMateriasCursando();
+                                    c.refresh();
+                                    JOptionPane.showMessageDialog(this, "Su selección de carga de materias ha terminado con éxito.");
+                                    correcto = true;
+                                    break;
+                                } else {
+
+                                }
                             }
+                            if (!band) {
+                                JOptionPane.showConfirmDialog(this, "Su selección de carga de materias no se pudo realizar, vuelva a escoger sus horarios.", null, ERROR);
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(this, "El usuario y/o contraseña son incorrectos.");
+                            correcto = false;
                         }
                     } else {
-                        claveNoDisponibles.add(horariosTerminados.get(i).schedule.get(j).codigoMat);
+                        JOptionPane.showMessageDialog(this, "Ha ocurrido un problema con su carrera.");
+                        correcto = false;
+
                     }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Ha ocurrido un problema, verifique que tenga acceso a internet.");
+                    correcto = false;
+
                 }
-                if (band) {
-                    String clave, grupo;
-                    for (int j = 0; j < horariosTerminados.get(i).schedule.size(); j++) {
-                        clave = horariosTerminados.get(i).schedule.get(j).codigoMat.substring(0, clavesDisponibles.get(j).length() - 1);
-                        grupo = horariosTerminados.get(i).schedule.get(j).codigoMat.substring(clavesDisponibles.get(j).length() - 1);
-                        System.out.println(clave + " - " + grupo);
-                        Object datos[] = {null, grupo, clave, Alumno.numControl, 0, 1};
-                        con.Insert(datos, "grupoAlumno");
-                    }
-                    c.CrearArchivoMateriasCursando();
-                    c.refresh();
-                    JOptionPane.showMessageDialog(this, "Su selección de carga de materias ha terminado con éxito.");
-                    break;
-                }
+            } else {
+                correcto = false;
             }
-        } else {
-            JOptionPane.showMessageDialog(this, "El usuario y/o contraseña son incorrectos .");
+        } catch (Exception e) {
+
         }
+    }
+
+    private void jButEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButEnviarActionPerformed
+        // TODO add your handling code here:
+        t = new Thread(this);
+        t.start();
 
     }//GEN-LAST:event_jButEnviarActionPerformed
 
@@ -959,4 +997,14 @@ public class VisualizarHorarios extends javax.swing.JFrame {
     private javax.swing.JTable jTable3;
     private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void run() {
+        jButEnviar.setEnabled(false);
+        Enviar();
+        load.setVisible(false);
+        if (!correcto) {
+            jButEnviar.setEnabled(true);
+        }
+    }
 }

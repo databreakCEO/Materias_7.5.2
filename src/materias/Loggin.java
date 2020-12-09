@@ -30,7 +30,7 @@ import jroundborder.JLabelRound;
  *
  * @author Daniel Gonzalez Cabrera
  */
-public class Loggin extends javax.swing.JFrame {
+public class Loggin extends javax.swing.JFrame implements Runnable {
 
     /**
      * Creates new form Loggin
@@ -50,6 +50,8 @@ public class Loggin extends javax.swing.JFrame {
     String alu[];
     int creditos = 0;
     String pass;
+    Cargando load;
+    Thread t;
 
     public Loggin() {
         initComponents();
@@ -57,12 +59,14 @@ public class Loggin extends javax.swing.JFrame {
             this.setTitle("Inicio de sesión");
             try {
                 this.setIconImage(new ImageIcon(getClass().getResource("/Imagenes/rayo.jpg")).getImage());
+                load = new Cargando();
+                t = new Thread(this);
             } catch (Exception e) {
 
             }
             int size = 100;
             //creamos la conexion hacia la base de datos
-            con = new Conexiones("ITLDB", "root", "", "localhost");
+            con = new Conexiones("ITLDB", "root", "", "frograment.sytes.net");
 
             //Asignamos el logo del Instituto Tecnologico de la Laguna al jLabel "labelCircular"
             labelCircular.setBounds(0, 0, size, size);
@@ -240,7 +244,8 @@ public class Loggin extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         jTextUser = new javax.swing.JTextField();
-        jTextPass = new javax.swing.JTextField();
+        jCheckBox1 = new javax.swing.JCheckBox();
+        jTextPass = new javax.swing.JPasswordField();
         jLabelPapelera = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
 
@@ -263,7 +268,7 @@ public class Loggin extends javax.swing.JFrame {
                 jLabEntrarMouseClicked(evt);
             }
         });
-        getContentPane().add(jLabEntrar, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 260, 240, 40));
+        getContentPane().add(jLabEntrar, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 280, 240, 40));
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jLabel1.setText("NUMERO DE CONTROL:");
@@ -292,19 +297,20 @@ public class Loggin extends javax.swing.JFrame {
         });
         getContentPane().add(jTextUser, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 150, 240, 30));
 
-        jTextPass.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
-        jTextPass.setToolTipText("Contraseña");
-        jTextPass.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
-        jTextPass.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jTextPassKeyPressed(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                jTextPassKeyTyped(evt);
+        jCheckBox1.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox1.setText("Ver contraseña");
+        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox1ActionPerformed(evt);
             }
         });
+        getContentPane().add(jCheckBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 250, -1, 20));
+
+        jTextPass.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
+        jTextPass.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
         getContentPane().add(jTextPass, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 210, 240, 30));
 
+        jLabelPapelera.setToolTipText("Oprima para borrar los registros del usuario");
         jLabelPapelera.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jLabelPapeleraMouseClicked(evt);
@@ -331,288 +337,295 @@ public class Loggin extends javax.swing.JFrame {
         }
     }
 
-    private void jLabEntrarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabEntrarMouseClicked
+    public void Entrar() {
+        try {
+            // se crea el objeto para el archivo Logs
+            Archivo logs = new Archivo("logs.txt");
+            String logeo;
+            ArrayList<String> listaLogs = new ArrayList<>();
 
-        // se crea el objeto para el archivo Logs
-        Archivo logs = new Archivo("logs.txt");
-        String logeo;
-        ArrayList<String> listaLogs = new ArrayList<>();
-
-        //se intenta guardar la informacion del archivo logs en un array
-        if (logs.crearLectura()) {
-            while ((logeo = logs.LeerLinea()) != null) {
-                listaLogs.add(logeo);
-            }
-            logs.CerrarLectura();
-        }
-
-        boolean registrado = false;
-        //        String usuario = "20130102";
-        //        pass ="1234";
-        //        String usuario = "16130809";
-        //        pass = "fullcounter";
-
-        String usuario = jTextUser.getText();
-        pass = jTextPass.getText();
-
-        //se separa en un arreglo la informacion de cada iteracion del array
-        //para tener en un solo arreglo los usuario ya logeados
-        String separados[];
-        for (int i = 0; i < listaLogs.size(); i++) {
-            separados = listaLogs.get(i).split(" - ");
-            if (usuario.equals(separados[0])) {
-                registrado = true;
-                numControl = separados[0];
-                carrera = separados[1];
-                break;
-            }
-        }
-
-        //en caso de que no se haya encontrado el usuario en el archivo logs
-        //se mandará a la base de datos, la consulta de la informacion del
-        //usuario
-        if (registrado == false) {
-            //se consulta la informacion general del usuario en caso de existir
-            alu = con.Log(usuario, pass);
-
-            //en caso de que exista el usuario, se empieza a crear los archivos
-            //necesarios para trabajar sobre ellos mas adelante
-            if (!alu[0].equals("null") && !alu[1].equals("null")) {
-                //se separa la informacion general del usuario en un arreglo
-                String[] split = alu[1].split(" ");
-                carrera = split[0];
-                numControl = alu[0];
-
-                for (String listado1 : listado) {
-                    if (listado1.equals(carrera + ".txt")) {
-                        crearArchivos(listado1);
-                    }
+            //se intenta guardar la informacion del archivo logs en un array
+            if (logs.crearLectura()) {
+                while ((logeo = logs.LeerLinea()) != null) {
+                    listaLogs.add(logeo);
                 }
+                logs.CerrarLectura();
+            }
 
-                //se consulta toda la informacion de las materias de la carrera
-                //insertandolo en una matriz
-                Object[][] matdb;
-                try {
-                    matdb = con.showAllData(carrera, "Select * from " + carrera);
-                } catch (Exception e) {
-                    matdb = new Object[0][0];
-                    JOptionPane.showMessageDialog(this, "Error en actualización, asegúrese de que tiene acceso a internet. Si el problema persiste pongase en contacto con el creador del programa.");
+            boolean registrado = false;
+            //        String usuario = "20130102";
+            //        pass ="1234";
+            //        String usuario = "16130809";
+            //        pass = "fullcounter";
+
+            String usuario = jTextUser.getText();
+            pass = jTextPass.getText();
+
+            //se separa en un arreglo la informacion de cada iteracion del array
+            //para tener en un solo arreglo los usuario ya logeados
+            String separados[];
+            for (int i = 0; i < listaLogs.size(); i++) {
+                separados = listaLogs.get(i).split(" - ");
+                if (usuario.equals(separados[0])) {
+                    registrado = true;
+                    numControl = separados[0];
+                    carrera = separados[1];
+                    break;
                 }
-                //se inserta la informacion en un archivo txt con el nombre de la carrera
-                if (matdb.length > 0) {
-                    Archivo materiasBD = new Archivo("Materias por carrera\\" + carrera + ".txt");
-                    materiasBD.crearEscritura();
-                    for (int i = 0; i < matdb.length; i++) {
-                        for (int j = 0; j < matdb[0].length; j++) {
-                            if (j < matdb[0].length - 1 && j != 1) {
-                                materiasBD.EscribirLinea(matdb[i][j] + " ");
-                            } else {
-                                materiasBD.EscribirLinea(matdb[i][j] + "");
-                            }
+            }
 
-                        }
-                        if (i < matdb.length - 1) {
-                            materiasBD.NuevaLinea();
+            //en caso de que no se haya encontrado el usuario en el archivo logs
+            //se mandará a la base de datos, la consulta de la informacion del
+            //usuario
+            if (registrado == false) {
+                //se consulta la informacion general del usuario en caso de existir
+                alu = con.Log(usuario, pass);
+
+                //en caso de que exista el usuario, se empieza a crear los archivos
+                //necesarios para trabajar sobre ellos mas adelante
+                if (!alu[0].equals("null") && !alu[1].equals("null")) {
+                    //se separa la informacion general del usuario en un arreglo
+                    String[] split = alu[1].split(" ");
+                    carrera = split[0];
+                    numControl = alu[0];
+
+                    for (String listado1 : listado) {
+                        if (listado1.equals(carrera + ".txt")) {
+                            crearArchivos(listado1);
                         }
                     }
-                    materiasBD.CerrarEscritura();
 
-                }
-
-                try {
-
-                    //Se verifica si ya existe la carpeta de ese usuario
-                    boolean band = false, user = false;
-                    carpeta = new File(carrera + "\\Usuarios");
-                    listado = carpeta.list() == null ? null : carpeta.list();
+                    //se consulta toda la informacion de las materias de la carrera
+                    //insertandolo en una matriz
+                    Object[][] matdb;
                     try {
-                    } catch (Exception ex) {
-                        listado = null;
+                        matdb = con.showAllData(carrera, "Select * from " + carrera);
+                    } catch (Exception e) {
+                        matdb = new Object[0][0];
+                        JOptionPane.showMessageDialog(this, "Error en actualización, asegúrese de que tiene acceso a internet. Si el problema persiste pongase en contacto con el creador del programa.");
                     }
-                    if (listado != null) {
-                        for (String listado1 : listado) {
-                            if (numControl.equals(listado1)) {
-                                user = true;
-                                break;
+                    //se inserta la informacion en un archivo txt con el nombre de la carrera
+                    if (matdb.length > 0) {
+                        Archivo materiasBD = new Archivo("Materias por carrera\\" + carrera + ".txt");
+                        materiasBD.crearEscritura();
+                        for (int i = 0; i < matdb.length; i++) {
+                            for (int j = 0; j < matdb[0].length; j++) {
+                                if (j < matdb[0].length - 1 && j != 1) {
+                                    materiasBD.EscribirLinea(matdb[i][j] + " ");
+                                } else {
+                                    materiasBD.EscribirLinea(matdb[i][j] + "");
+                                }
+
+                            }
+                            if (i < matdb.length - 1) {
+                                materiasBD.NuevaLinea();
                             }
                         }
+                        materiasBD.CerrarEscritura();
+
                     }
-                    //En caso de no existir la carpeta del usuario, se creará
-                    if (!user) {
-                        String nombreArchivo = numControl;
-                        nombreArchivo = nombreArchivo.toUpperCase();
+
+                    try {
+
+                        //Se verifica si ya existe la carpeta de ese usuario
+                        boolean band = false, user = false;
                         carpeta = new File(carrera + "\\Usuarios");
-
-                        if (band == false) {
-
-                            try {
-
-                                //se crean los archivos necesarios para el 
-                                //funcionamiento del software
-                                logs.crearEscritura();
-                                for (int i = 0; i < listaLogs.size(); i++) {
-                                    logs.EscribirLinea(listaLogs.get(i));
-                                    logs.NuevaLinea();
+                        listado = carpeta.list() == null ? null : carpeta.list();
+                        try {
+                        } catch (Exception ex) {
+                            listado = null;
+                        }
+                        if (listado != null) {
+                            for (String listado1 : listado) {
+                                if (numControl.equals(listado1)) {
+                                    user = true;
+                                    break;
                                 }
-                                logs.EscribirLinea(numControl + " - " + carrera);
-                                logs.CerrarEscritura();
-                                Archivo a1 = new Archivo(carrera + "\\NombreMaterias.txt");
-                                if (a1.crearLectura()) {
+                            }
+                        }
+                        //En caso de no existir la carpeta del usuario, se creará
+                        if (!user) {
+                            String nombreArchivo = numControl;
+                            nombreArchivo = nombreArchivo.toUpperCase();
+                            carpeta = new File(carrera + "\\Usuarios");
 
-                                    File direct = new File(carrera + "\\Usuarios\\" + nombreArchivo);
-                                    direct.mkdir();
-                                    direct.createNewFile();
-                                    Archivo datos = new Archivo(direct + "\\datos.txt");
-                                    datos.crearEscritura();
-                                    Archivo kardex = new Archivo(direct + "\\kardex.txt");
-                                    kardex.crearEscritura();
-                                    Archivo a2 = new Archivo(direct + "\\materiasEstado.txt");
-                                    a2.crearEscritura();
-                                    Archivo guardar = new Archivo(direct + "\\horariosGuardados.txt");
-                                    guardar.crearEscritura();
-                                    Archivo cursando = new Archivo(direct + "\\materiasCursando.txt");
-                                    cursando.crearEscritura();
-                                    ArrayList<String> lista = new ArrayList<>();
-                                    String line = a1.LeerLinea();
-                                    band = true;
-                                    int cont = 0;
+                            if (band == false) {
+                                try {
 
-                                    while (line != null) {
+                                    //se crean los archivos necesarios para el 
+                                    //funcionamiento del software
+                                    logs.crearEscritura();
+                                    for (int i = 0; i < listaLogs.size(); i++) {
+                                        logs.EscribirLinea(listaLogs.get(i));
+                                        logs.NuevaLinea();
+                                    }
+                                    logs.EscribirLinea(numControl + " - " + carrera);
+                                    logs.CerrarEscritura();
+                                    Archivo a1 = new Archivo(carrera + "\\NombreMaterias.txt");
+                                    if (a1.crearLectura()) {
+
+                                        File direct = new File(carrera + "\\Usuarios\\" + nombreArchivo);
+                                        direct.mkdir();
+                                        direct.createNewFile();
+                                        Archivo datos = new Archivo(direct + "\\datos.txt");
+                                        datos.crearEscritura();
+                                        Archivo kardex = new Archivo(direct + "\\kardex.txt");
+                                        kardex.crearEscritura();
+                                        Archivo a2 = new Archivo(direct + "\\materiasEstado.txt");
+                                        a2.crearEscritura();
+                                        Archivo guardar = new Archivo(direct + "\\horariosGuardados.txt");
+                                        guardar.crearEscritura();
+                                        Archivo cursando = new Archivo(direct + "\\materiasCursando.txt");
+                                        cursando.crearEscritura();
+                                        ArrayList<String> lista = new ArrayList<>();
+                                        String line = a1.LeerLinea();
                                         band = true;
+                                        int cont = 0;
+
+                                        while (line != null) {
+                                            band = true;
+                                            for (int j = 0; j < lista.size(); j++) {
+                                                if (line.equals(lista.get(j)) || line.equals("RESIDENCIA") || line.equals("RESIDENCIA PROFESIONAL") || line.equals("TUTORIA")) {
+                                                    band = false;
+                                                }
+                                            }
+                                            if (band == true) {
+                                                lista.add(line);
+                                            }
+                                            line = a1.LeerLinea();
+                                        }
+
+                                        //se consulta el kardex del alumno,
+                                        //se inserta en una matriz
+                                        String[][] kard = con.Kardex(numControl, carrera);
+                                        boolean coincide = false;
+
+                                        //Se verifica si una materia de la lista
+                                        //total existe dentro del kardex, de
+                                        //no existir en el kardex, se guardará
+                                        //en un archivo de texto
                                         for (int j = 0; j < lista.size(); j++) {
-                                            if (line.equals(lista.get(j)) || line.equals("RESIDENCIA") || line.equals("RESIDENCIA PROFESIONAL") || line.equals("TUTORIA")) {
-                                                band = false;
+                                            coincide = false;
+                                            for (String[] kard1 : kard) {
+                                                if (lista.get(j).equals(kard1[1]) && Integer.valueOf(kard1[2]) >= 70) {
+                                                    coincide = true;
+                                                    break;
+                                                }
+
                                             }
-                                        }
-                                        if (band == true) {
-                                            lista.add(line);
-                                        }
-                                        line = a1.LeerLinea();
-                                    }
-
-                                    //se consulta el kardex del alumno,
-                                    //se inserta en una matriz
-                                    String[][] kard = con.Kardex(numControl, carrera);
-                                    boolean coincide = false;
-
-                                    //Se verifica si una materia de la lista
-                                    //total existe dentro del kardex, de
-                                    //no existir en el kardex, se guardará
-                                    //en un archivo de texto
-                                    for (int j = 0; j < lista.size(); j++) {
-                                        coincide = false;
-                                        for (String[] kard1 : kard) {
-                                            if (lista.get(j).equals(kard1[1]) && Integer.valueOf(kard1[2]) >= 70) {
-                                                coincide = true;
-                                                break;
+                                            if (cont > 0 && coincide == false) {
+                                                a2.NuevaLinea();
+                                            }
+                                            if (coincide == false) {
+                                                a2.EscribirLinea(lista.get(j));
+                                                cont++;
                                             }
 
                                         }
-                                        if (cont > 0 && coincide == false) {
-                                            a2.NuevaLinea();
-                                        }
-                                        if (coincide == false) {
-                                            a2.EscribirLinea(lista.get(j));
-                                            cont++;
-                                        }
 
-                                    }
-
-                                    //se inserta los datos del kardex del
-                                    //alumno en un archivo txt llamado 
-                                    //"Kardex.txt"
-                                    for (int i = 0; i < kard.length; i++) {
-                                        kardex.EscribirLinea(kard[i][0] + " - " + kard[i][1] + " - " + kard[i][2] + " - " + kard[i][3] + " - " + kard[i][4]);
-                                        if (i < kard.length - 1) {
-                                            kardex.NuevaLinea();
-                                        }
-                                        creditos += Integer.valueOf(kard[i][4]);
-                                    }
-
-                                    //se extrae de la base de datos, la
-                                    //lista de materias que el alumno está
-                                    //cursando en el momento  y se guarda
-                                    //en un archivo txt
-                                    ArrayList<String[]> matCurs = con.Cursando(numControl);
-                                    String lineaMat;
-                                    for (int i = 0; i < matCurs.size(); i++) {
-                                        lineaMat = "";
-                                        for (int j = 0; j < matCurs.get(i).length; j++) {
-                                            lineaMat += (matCurs.get(i)[j]);
-                                            if (j < matCurs.get(i).length - 1) {
-                                                lineaMat += " - ";
+                                        //se inserta los datos del kardex del
+                                        //alumno en un archivo txt llamado 
+                                        //"Kardex.txt"
+                                        for (int i = 0; i < kard.length; i++) {
+                                            kardex.EscribirLinea(kard[i][0] + " - " + kard[i][1] + " - " + kard[i][2] + " - " + kard[i][3] + " - " + kard[i][4]);
+                                            if (i < kard.length - 1) {
+                                                kardex.NuevaLinea();
                                             }
-
+                                            creditos += Integer.valueOf(kard[i][4]);
                                         }
-                                        cursando.EscribirLinea(lineaMat);
-                                        if (i < matCurs.size() - 1) {
-                                            cursando.NuevaLinea();
+
+                                        //se extrae de la base de datos, la
+                                        //lista de materias que el alumno está
+                                        //cursando en el momento  y se guarda
+                                        //en un archivo txt
+                                        ArrayList<String[]> matCurs = con.Cursando(numControl);
+                                        String lineaMat;
+                                        for (int i = 0; i < matCurs.size(); i++) {
+                                            lineaMat = "";
+                                            for (int j = 0; j < matCurs.get(i).length; j++) {
+                                                lineaMat += (matCurs.get(i)[j]);
+                                                if (j < matCurs.get(i).length - 1) {
+                                                    lineaMat += " - ";
+                                                }
+
+                                            }
+                                            cursando.EscribirLinea(lineaMat);
+                                            if (i < matCurs.size() - 1) {
+                                                cursando.NuevaLinea();
+                                            }
                                         }
-                                    }
-                                    //se guarda en un archivo txt los datos
-                                    //del alumno
-                                    for (String alu1 : alu) {
-                                        datos.EscribirLinea(alu1);
-                                        datos.NuevaLinea();
-                                    }
-                                    datos.EscribirLinea(creditos + "");
+                                        //se guarda en un archivo txt los datos
+                                        //del alumno
+                                        for (String alu1 : alu) {
+                                            datos.EscribirLinea(alu1);
+                                            datos.NuevaLinea();
+                                        }
+                                        datos.EscribirLinea(creditos + "");
 
-                                    //se cierran todos los archivos para que
-                                    //se guarden
-                                    a1.CerrarLectura();
-                                    a2.CerrarEscritura();
-                                    datos.CerrarEscritura();
-                                    kardex.CerrarEscritura();
-                                    guardar.CerrarEscritura();
-                                    cursando.CerrarEscritura();
+                                        //se cierran todos los archivos para que
+                                        //se guarden
+                                        a1.CerrarLectura();
+                                        a2.CerrarEscritura();
+                                        datos.CerrarEscritura();
+                                        kardex.CerrarEscritura();
+                                        guardar.CerrarEscritura();
+                                        cursando.CerrarEscritura();
 
-                                    cambiar = false;
-                                } else {
+                                        cambiar = false;
+                                    } else {
+                                        JOptionPane.showMessageDialog(this, "Lo sentimos, aun no existen horarios para esta carrera");
+                                    }
+                                } catch (IOException ex) {
                                     JOptionPane.showMessageDialog(this, "Lo sentimos, aun no existen horarios para esta carrera");
                                 }
-                            } catch (IOException ex) {
-                                JOptionPane.showMessageDialog(this, "Lo sentimos, aun no existen horarios para esta carrera");
+
+                            } else {
+                                contador--;
+                                JOptionPane.showMessageDialog(this, "Elija una carrera y escriba un nombre de cuenta");
                             }
-
-                        } else {
-                            contador--;
-                            JOptionPane.showMessageDialog(this, "Elija una carrera y escriba un nombre de cuenta");
                         }
+                        crearFrameCuenta();
+
+                    } catch (HeadlessException e) {
+                        e.printStackTrace();
                     }
-                    crearFrameCuenta();
 
-                } catch (HeadlessException e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-                JOptionPane.showMessageDialog(this, "No se ha podido iniciar sesión con este numero de control, verifique que la contraseña sea correcta.\n Asegúrese de tener internet y ser alumno del Instituto Tecnologico de la Laguna");
-            }
-        } //En caso de que la carpeta del alumno ya exista, tan tolo se accederá
-        //al archivo de datos del usuario, necesarios para la creacion de el 
-        //frame "Cuenta"
-        else {
-
-            alu = new String[9];
-            Archivo dat = new Archivo(carrera + "\\Usuarios\\" + numControl + "\\datos.txt");
-            dat.crearLectura();
-            String lineaDat;
-            int i = 0;
-
-            //Se guardará la información en el arreglo alu 
-            while ((lineaDat = dat.LeerLinea()) != null) {
-                if (i < 9) {
-                    alu[i++] = lineaDat;
                 } else {
-                    creditos = Integer.valueOf(lineaDat);
+                    JOptionPane.showMessageDialog(this, "No se ha podido iniciar sesión con este numero de control, verifique que la contraseña sea correcta.\n Asegúrese de tener internet y ser alumno del Instituto Tecnologico de la Laguna");
                 }
-            }
-            //independientemente de si tuvo que ser creado la carpeta del
-            //alumno o no, al terminar cualquiera de los 2 procedimientos
-            //se mandará a llamar el frame "Cuenta"
-            crearFrameCuenta();
+            } //En caso de que la carpeta del alumno ya exista, tan tolo se accederá
+            //al archivo de datos del usuario, necesarios para la creacion de el 
+            //frame "Cuenta"
+            else {
 
+                alu = new String[9];
+                Archivo dat = new Archivo(carrera + "\\Usuarios\\" + numControl + "\\datos.txt");
+                dat.crearLectura();
+                String lineaDat;
+                int i = 0;
+
+                //Se guardará la información en el arreglo alu 
+                while ((lineaDat = dat.LeerLinea()) != null) {
+                    if (i < 9) {
+                        alu[i++] = lineaDat;
+                    } else {
+                        creditos = Integer.valueOf(lineaDat);
+                    }
+                }
+                //independientemente de si tuvo que ser creado la carpeta del
+                //alumno o no, al terminar cualquiera de los 2 procedimientos
+                //se mandará a llamar el frame "Cuenta"
+                crearFrameCuenta();
+
+            }
+        } catch (Exception e) {
         }
+    }
+
+    private void jLabEntrarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabEntrarMouseClicked
+
+        t= new Thread(this);
+        t.start();
 
     }//GEN-LAST:event_jLabEntrarMouseClicked
 
@@ -629,23 +642,6 @@ public class Loggin extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jTextUserKeyTyped
 
-    private void jTextPassKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextPassKeyTyped
-        //Solo se aceptarán letras y digitos, tampoco se aceptara que la tecla
-        //Ctrl este presionada
-        if (evt.getKeyCode() == KeyEvent.VK_CONTROL) {
-            evt.consume();
-        } else if (!Character.isLetter(evt.getKeyChar()) && !Character.isDigit(evt.getKeyChar())) {
-            evt.consume();
-        }
-    }//GEN-LAST:event_jTextPassKeyTyped
-
-    private void jTextPassKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextPassKeyPressed
-        //No se aceptará que la tecla Ctrl o Shift esten presionadas
-        if (evt.isControlDown() || evt.isShiftDown()) {
-            evt.consume();
-        }
-    }//GEN-LAST:event_jTextPassKeyPressed
-
     private void jTextUserKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextUserKeyPressed
         //No se aceptará que la tecla Ctrl o Shift esten presionadas
         if (evt.isControlDown() || evt.isShiftDown()) {
@@ -655,41 +651,51 @@ public class Loggin extends javax.swing.JFrame {
 
     private void jLabelPapeleraMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabelPapeleraMouseClicked
         // TODO add your handling code here:
-
         if (jTextUser.getText() != null && jTextUser.getText().length() > 0) {
-            Archivo logs = new Archivo("logs.txt");
-            logs.crearLectura();
-            String linea = "";
-            boolean encontrado = false;
-            ArrayList<String> lineas = new ArrayList<>();
-            String[] split = {"", ""};
-            while ((linea = logs.LeerLinea()) != null) {
-                split = linea.split(" - ");
-                if (split[0].equals(jTextUser.getText())) {
-                    encontrado = true;
-                    break;
-                } else {
-                    lineas.add(linea);
-                }
-            }
-            if (encontrado) {
-                logs.crearEscritura();
-                Archivo carpetaAEliminar = new Archivo(split[1] + "\\Usuarios\\" + split[0]);
-                carpetaAEliminar.Eliminar();
-                JOptionPane.showMessageDialog(this, "Los registros del usuario con el numero de control " + split[0] + " han sido eliminados.");
-                for (int i = 0; i < lineas.size(); i++) {
-                    logs.EscribirLinea(lineas.get(i));
-                    if(i<lineas.size()-1){
-                        logs.NuevaLinea();
+            int opcion = JOptionPane.showConfirmDialog(this, "Borrará los datos de este usuario, ¿Está de acuerdo?");
+            if (opcion == 0) {
+                Archivo logs = new Archivo("logs.txt");
+                logs.crearLectura();
+                String linea = "";
+                boolean encontrado = false;
+                ArrayList<String> lineas = new ArrayList<>();
+                String[] split = {"", ""};
+                while ((linea = logs.LeerLinea()) != null) {
+                    split = linea.split(" - ");
+                    if (split[0].equals(jTextUser.getText())) {
+                        encontrado = true;
+                    } else {
+                        lineas.add(linea);
                     }
-                    
+                }
+                if (encontrado) {
+                    logs.crearEscritura();
+                    Archivo carpetaAEliminar = new Archivo(split[1] + "\\Usuarios\\" + split[0]);
+                    carpetaAEliminar.Eliminar();
+                    JOptionPane.showMessageDialog(this, "Los registros del usuario con el numero de control " + split[0] + " han sido eliminados.");
+                    for (int i = 0; i < lineas.size(); i++) {
+                        logs.EscribirLinea(lineas.get(i));
+                        if (i < lineas.size() - 1) {
+                            logs.NuevaLinea();
+                        }
+
+                    }
+                    logs.CerrarEscritura();
                 }
             }
-
         } else {
             JOptionPane.showMessageDialog(this, "Ingrese el número de control del que quiere borrar los registros guardados en su sistema.");
         }
     }//GEN-LAST:event_jLabelPapeleraMouseClicked
+
+    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
+        // TODO add your handling code here:
+        if (jCheckBox1.isSelected()) {
+            jTextPass.setEchoChar((char) 0);
+        } else {
+            jTextPass.setEchoChar('*');
+        }
+    }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -724,6 +730,15 @@ public class Loggin extends javax.swing.JFrame {
 
     }
 
+    @Override
+    public void run() {
+        load.setVisible(true);
+        this.jLabEntrar.setEnabled(false);
+        Entrar();
+        this.jLabEntrar.setEnabled(true);
+        load.setVisible(false);
+    }
+
     //Se crea una clase interna unicamente para darle formato redondo a los
     //JLabels
     class RoundedBorder implements Border {
@@ -752,13 +767,14 @@ public class Loggin extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabEntrar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabelPapelera;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JTextField jTextPass;
+    private javax.swing.JPasswordField jTextPass;
     private javax.swing.JTextField jTextUser;
     // End of variables declaration//GEN-END:variables
 }

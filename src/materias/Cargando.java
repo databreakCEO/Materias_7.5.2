@@ -7,6 +7,7 @@ package materias;
 
 import java.awt.Image;
 import javax.swing.ImageIcon;
+import jroundborder.JLabelRound;
 
 /**
  *
@@ -17,14 +18,27 @@ public class Cargando extends javax.swing.JFrame {
     /**
      * Creates new form Cargando
      */
+    JLabelRound labelCircular = new JLabelRound();
+    int size = 135;
+    ImageIcon icon;
+    Image image;
+
     public Cargando() {
         initComponents();
-        try{
-        this.setLocationRelativeTo(null);
-        ImageIcon icon = new ImageIcon(getClass().getResource("/Imagenes/engranes.jpg"));
-        Image image = Imagenes.getScaledImage(icon.getImage(), jLabel2.getWidth(), jLabel2.getHeight());
-        this.jLabel2.setIcon(new ImageIcon(image));
-        }catch(Exception e){}
+
+        try {
+            this.setLocationRelativeTo(null);
+            labelCircular.setBounds(23, 23, size, size);
+//            labelCircular.setSize(200, 200);
+            icon = new ImageIcon(getClass().getResource("/Imagenes/ITL.png"));
+            image = Imagenes.getScaledImage(icon.getImage(), this.labelCircular.getWidth(), this.labelCircular.getHeight());
+            this.labelCircular.setIcon(new ImageIcon(image));
+            jPanel1.add(labelCircular);
+//            icon = new ImageIcon(getClass().getResource("/Imagenes/loading.gif"));
+//            image = Imagenes.getScaledImage(icon.getImage(), jLabLoad.getWidth(), jLabLoad.getHeight());
+//            this.jLabLoad.setIcon(new ImageIcon(image));
+        } catch (Exception e) {
+        }
     }
 
     /**
@@ -36,25 +50,42 @@ public class Cargando extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel4 = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        jLabLoad = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
+        jLabEspere = new javax.swing.JLabel();
+        jLabFondo = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setUndecorated(true);
         setResizable(false);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel4.setText("ESTO PUEDE TARDAR HASTA 5 MIN");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 0, -1, -1));
+        jLabLoad.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/loading.gif"))); // NOI18N
+        getContentPane().add(jLabLoad, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 30, 190, 180));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/cargando.gif"))); // NOI18N
-        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(-110, 30, 360, 240));
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
-        jLabel2.setBackground(new java.awt.Color(255, 255, 255));
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/engranes.jpg"))); // NOI18N
-        jLabel2.setOpaque(true);
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 250, 270));
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 180, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 180, Short.MAX_VALUE)
+        );
+
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, 180, 180));
+
+        jLabEspere.setFont(new java.awt.Font("Arial", 1, 11)); // NOI18N
+        jLabEspere.setText("CARGANDO, ESPERE UN MOMENTO...");
+        getContentPane().add(jLabEspere, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
+
+        jLabFondo.setBackground(new java.awt.Color(255, 255, 255));
+        jLabFondo.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        jLabFondo.setOpaque(true);
+        getContentPane().add(jLabFondo, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 210, 220));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -95,8 +126,9 @@ public class Cargando extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabEspere;
+    private javax.swing.JLabel jLabFondo;
+    private javax.swing.JLabel jLabLoad;
+    private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 }

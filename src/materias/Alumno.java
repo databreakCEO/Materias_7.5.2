@@ -28,4 +28,29 @@ public class Alumno {
 
     }
 
+    public static int NumCarrera() {
+        switch (carrera) {
+            case "Sistemas computacionales":
+                return 1;
+            case "Industrial":
+                return 2;
+            case "Electrica":
+                return 3;
+            case "Mecanica":
+                return 4;
+            case "Quimica":
+                return 5;
+            case "Electronica":
+                return 6;
+            case "Administracion":
+                return 7;
+            case "Mecatronica":
+                return 8;
+            case "Energias renovables":
+                return 9;
+            case "Gestion empresarial":
+                return 10;
+        }
+        return 0;
+    }
 }

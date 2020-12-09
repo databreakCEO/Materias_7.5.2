@@ -225,6 +225,7 @@ public class Materia {
         static ArrayList<Materia> lista = new ArrayList<>();
 
     public static void crearListaMaterias(String carrera){
+        lista=new ArrayList<>();
         Archivo a1 = new Archivo(carrera + "\\NombreMaterias.txt");
         Archivo a2 = new Archivo(carrera + "\\ClaveMaterias.txt");
         Archivo a3 = new Archivo(carrera + "\\HorarioMaterias.txt");

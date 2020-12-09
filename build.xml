@@ -11,7 +11,7 @@
     <description>Builds, tests, and runs the project MateriasReborn.</description>
     <import file="nbproject/build-impl.xml"/>
     <target name="-post-jar">
-    <property name="store.jar.name" value="MateriasReborn"/>
+    <property name="store.jar.name" value="Materias_7.5.2"/>
 
     <property name="store.dir" value="dist"/>
     <property name="store.jar" value="${store.dir}/${store.jar.name}.jar"/>

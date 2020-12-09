@@ -31,7 +31,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
     JTabla tablaMateriasColoreadas;
     DefaultTableModel modelo;
     DefaultTableModel modeloProfesores;
-    DefaultListModel materiasPendientes;
     ArrayList<String> listaElegidos;
     JList jlist1;
     DefaultListModel listaMateriasPosibles;
@@ -44,7 +43,7 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
 //    ArrayList<Horario> sc;
     boolean mandar = false;
     boolean mandarIsSelected = false;
-    Cuenta c;
+    Cuenta cuenta;
     int horariosHabiles = 0;
     int conSpiner = 0;
     String nombre;
@@ -56,7 +55,9 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
     Cargando load;
     int[] creditosMat;
 
-    public MateriasFrame(DefaultListModel materiasPendientes, String carrera, String nombre) {
+    boolean horariosEmpezados = false;
+
+    public MateriasFrame(DefaultListModel materiasPasadas, String carrera, String nombre) {
         initComponents();
         try {
             this.setIconImage(new ImageIcon(getClass().getResource("/Imagenes/rayo.jpg")).getImage());
@@ -82,7 +83,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
         modeloProfesores = (DefaultTableModel) jTable2.getModel();
         listaElegidos = new ArrayList<>();
         listaMaestros = new ArrayList<>();
-        this.materiasPendientes = materiasPendientes;
         this.nombre = nombre;
 
         colorCeldas = new ColorCeldas(jTable1);
@@ -104,7 +104,9 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
         sc = new ArrayList<>();
 //        jSpinner1.setValue(1);
         Materia.crearListaMaterias(carrera);
-        ArrayList<String> matPen = seccionesRestricciones(carrera, materiasPendientes, Alumno.creditosAcumulados * 100 / 260);
+        System.out.println(Materia.lista.size());
+        ArrayList<String> matPen = seccionesRestricciones(carrera, materiasPasadas, Alumno.creditosAcumulados * 100 / 260);
+        System.out.println(matPen.size());
 //        if (carrera.equals("Sistemas")) {
 //            matPen = secciones(carrera, materiasPendientes);
 //        } else {
@@ -123,15 +125,9 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
         }
         creditosMat = new int[matPen.size()];
         for (int i = 0; i < matPen.size(); i++) {
-//            System.out.println("");
-//            System.out.print(matPen.get(i)[1] + " ");
             for (int j = 0; j < Materia.lista.size(); j++) {
                 if (Materia.lista.get(j).nombreMat.equals(matPen.get(i))) {
-
-                    System.out.print(Materia.lista.get(j).nombreMat + " ");
                     creditosMat[i] = Materia.lista.get(j).costo;
-//                    index++;
-                    System.out.println(Materia.lista.get(j).costo);
                     break;
                 }
             }
@@ -158,7 +154,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
 //    ArrayList<Materia> lista = new ArrayList<>();
 
     ArrayList<String> datos = new ArrayList<>();
-    ArrayList<String> materiasPasadas = new ArrayList<>();
 
     public ArrayList<String> seccionesRestricciones(String carrera, DefaultListModel materias, int porcentaje) {
         // se definen las restricciones por ligadura directa e indirecta
@@ -300,7 +295,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
                                         break;
                                 }
                                 restricciones.get(j).remove(k);
-                                materias.remove(i);
                                 break OUTER;
                             }
                         }
@@ -1742,7 +1736,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
                         for (int k = 0; k < restricciones.get(j).size(); k++) {
                             if (restricciones.get(j).get(k).equals(materia)) {
                                 restricciones.get(j).remove(k);
-                                materias.remove(i);
                                 break OUTER;
                             }
                         }
@@ -1873,7 +1866,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
                                         break;
                                 }
                                 restricciones.get(j).remove(k);
-                                materias.remove(i);
                                 break OUTER;
                             }
                         }
@@ -1949,7 +1941,7 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
                 S4.add("MECANISMOS");
                 S4.add("VIBRACIONES MECANICAS");
 
-                S5.add("ELECTRO MAGNETISMO");
+                S5.add("ELECTROMAGNETISMO");
                 S5.add("ANALISIS DE CIRCUITOS ELECTRICOS");
                 S5.add("MAQUINAS ELECTRICAS");
 
@@ -2036,7 +2028,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
 //                                        break;
                                 }
                                 restricciones.get(j).remove(k);
-                                materias.remove(i);
                                 break OUTER;
                             }
                         }
@@ -2203,7 +2194,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
                                         break;
                                 }
                                 restricciones.get(j).remove(k);
-                                materias.remove(i);
                                 break OUTER;
                             }
                         }
@@ -2685,6 +2675,7 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
 
     private void CrearHorariosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CrearHorariosActionPerformed
         try {
+            horariosEmpezados = true;
             t = new Thread(this);
             t.start();
         } catch (Exception e) {
@@ -2766,7 +2757,7 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
                     nombreA = JOptionPane.showInputDialog("Elija un nombre para este horario.", nombreA);
                     if (nombreA != null) {
                         if (nombreA.length() > 0) {
-                            Archivo horariosGuardados = new Archivo(c.nombre + "\\horariosGuardados.txt");
+                            Archivo horariosGuardados = new Archivo(cuenta.nombre + "\\horariosGuardados.txt");
                             horariosGuardados.crearLectura();
                             String texto = "";
                             try {
@@ -2830,31 +2821,33 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
     private void jTable2MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable2MouseReleased
         // TODO add your handling code here:
         try {
-            int r = jTable2.getSelectedRow();
             for (int j = 0; j < Materia.lista.size(); j++) {
                 for (int i = 0; i < listaMaestros.size(); i++) {
                     if (listaMaestros.get(i).codigoMat.equals(Materia.lista.get(j).codigoMat)) {
                         Materia.lista.get(j).aprobado = (boolean) jTable2.getValueAt(i, 0);
                     }
                 }
+            }
+            if (horariosEmpezados) {
 
+                horario.clear();
+                for (int i = 0; i < listaElegidos.size(); i++) {
+                    crearArreglosHorarios(listaElegidos.get(i), colores[i]);
+                }
+                jTable2.clearSelection();
+                t = new Thread(this);
+                t.start();
             }
-            horario.clear();
-            for (int i = 0; i < listaElegidos.size(); i++) {
-                crearArreglosHorarios(listaElegidos.get(i), colores[i]);
-            }
-            jTable2.clearSelection();
-            t = new Thread(this);
-            t.start();
         } catch (Exception e) {
 
         }
+
     }//GEN-LAST:event_jTable2MouseReleased
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         // TODO add your handling code here:
         try {
-            c.setVisible(true);
+            cuenta.setVisible(true);
         } catch (Exception e) {
 
         }
@@ -2972,7 +2965,6 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
             try {
                 InsertarMaterias();
                 int r = jTable1.getSelectedRow();
-                System.out.println(r);
                 jTable1.changeSelection(r, 0, false, false);
 
             } catch (Exception e) {
@@ -3077,28 +3069,34 @@ public class MateriasFrame extends javax.swing.JFrame implements Runnable {
             sc = new ArrayList<>();
 
             try {
-                CrearCombinaciones(0, listaElegidos.size(), new Horario());
-                for (int i = 0; i < sc.size(); i++) {
-                    sc.get(i).ordenarHoras();
+                if (listaElegidos.size() > 1) {
+                    CrearCombinaciones(0, listaElegidos.size(), new Horario());
+                    for (int i = 0; i < sc.size(); i++) {
+                        sc.get(i).ordenarHoras();
+                    }
+
+                    OrdenarXHorasEscolares(sc, 0, sc.size() - 1, 0);
+                    horariosHabiles = 0;
+                    horariosPintados = new ColorCeldas(jTable3);
+
+                    if (sc.size() > 0) {
+                        sc.get(0).Mandar(jTable3, horariosPintados);
+                    }
+                    jLabel1.setText("Posibles Horarios " + sc.size());
+
+                    if (sc.size() < 1) {
+                        JOptionPane.showMessageDialog(this, "No se ha podido crear ningun horario con estas especificaciones");
+                    }
+                    load.setVisible(false);
+
+                } else {
+                    JOptionPane.showMessageDialog(this, "Debe escoger de 2 a 8 materias para hacer horarios y al menos 1 docente por materia.");
+                    load.setVisible(false);
+
                 }
-
-                OrdenarXHorasEscolares(sc, 0, sc.size() - 1, 0);
-                horariosHabiles = 0;
-                horariosPintados = new ColorCeldas(jTable3);
-
-                if (sc.size() > 0) {
-                    sc.get(0).Mandar(jTable3, horariosPintados);
-                }
-                jLabel1.setText("Posibles Horarios " + sc.size());
-
-                if (sc.size() < 1) {
-                    JOptionPane.showMessageDialog(this, "No se ha podido crear ningun horario con estas especificaciones");
-                }
-
-                load.setVisible(false);
             } catch (HeadlessException ex) {
                 load.setVisible(false);
-                JOptionPane.showMessageDialog(this, "Debe escoger de 2 a 8 materias para hacer horarios.");
+                JOptionPane.showMessageDialog(this, "Debe escoger de 2 a 8 materias para hacer horarios y al menos 1 docente por materia.");
             }
             jTable1.setEnabled(true);
             this.jNumHorario.setText("Horario #" + (numHorario + 1));

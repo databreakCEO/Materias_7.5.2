@@ -36,7 +36,7 @@ public class Archivo {
 
     public Archivo(String direccion) {
         path = new File(direccion);
-        
+
     }
 
     public void crearEscritura() {
@@ -71,7 +71,7 @@ public class Archivo {
             Logger.getLogger(Archivo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void CerrarEscritura() {
         try {
             bufferedWriter.close();
@@ -93,12 +93,11 @@ public class Archivo {
     public void EscribirLinea(String linea) {
         try {
             bufferedWriter.write(linea);
-         
+
         } catch (IOException ex) {
             Logger.getLogger(Archivo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 
     public void NuevaLinea() {
         try {
@@ -108,26 +107,22 @@ public class Archivo {
         }
     }
 
-        public void EliminarCarpeta(File path) {
+    public void EliminarCarpeta(File path) {
         try {
-            if (!path.isDirectory()) {
-                path.delete();
-            } else {
-                File[] archivos = path.listFiles();
-                for (int i = 0; i < archivos.length; i++) {
-                    if (archivos[i].isDirectory()) {
-                        Archivo a = new Archivo(archivos[i].getAbsolutePath());
-                        a.EliminarCarpeta(a.path);
-                    } else {
-                        Eliminar(archivos[i]);
 
-                    }
+            File[] archivos = path.listFiles();
+            for (int i = 0; i < archivos.length; i++) {
+                if (archivos[i].isDirectory()) {
+                    Archivo a = new Archivo(archivos[i].getAbsolutePath());
+                    a.EliminarCarpeta(a.path);
+                } else {
+                    Eliminar(archivos[i]);
+
                 }
-                path.delete();
             }
+            path.delete();
 
         } catch (Exception e) {
-
         }
     }
 
@@ -147,7 +142,6 @@ public class Archivo {
         try {
             path.delete();
         } catch (Exception e) {
-
         }
     }
 }

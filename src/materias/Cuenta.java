@@ -16,11 +16,13 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author Frodo
  */
-public class Cuenta extends javax.swing.JFrame {
+public class Cuenta extends javax.swing.JFrame implements Runnable {
 
     /**
      * Creates new form Cuenta
      */
+    Thread t;
+    Cargando load;
     DefaultListModel listaTotal, listaPendientes;
     MateriasFrame mf;
     String nombre;
@@ -39,12 +41,16 @@ public class Cuenta extends javax.swing.JFrame {
     int creditos;
     File direct;
     Loggin loggin;
+    int opcion = 0;
 
     public Cuenta(Loggin loggin, String carrera, String nombre, String cuenta, String pass) {
         initComponents();
+
         try {
             try {
                 this.setIconImage(new ImageIcon(getClass().getResource("/Imagenes/rayo.jpg")).getImage());
+                t = new Thread(this);
+                load = new Cargando();
             } catch (Exception e) {
 
             }
@@ -53,7 +59,7 @@ public class Cuenta extends javax.swing.JFrame {
             this.setTitle("Cuenta");
 
             //Se crea la conexion la base de datos
-            con = new Conexiones("ITLDB", "root", "", "localhost");
+            con = new Conexiones("ITLDB", "root", "", "frograment.sytes.net");
 
             //se iguala las variables globales a las recibidas
             this.pass = pass;
@@ -74,7 +80,6 @@ public class Cuenta extends javax.swing.JFrame {
         //del alumno y se guardan en el arreglo "alu"
         String[] alu = new String[8];
         Archivo al = new Archivo(nombre + "\\datos.txt");
-        System.out.println(al.path.getAbsolutePath());
         al.crearLectura();
         for (int i = 0; i < 8; i++) {
             alu[i] = al.LeerLinea();
@@ -204,7 +209,7 @@ public class Cuenta extends javax.swing.JFrame {
         } catch (Exception e) {
 
         }
-        kardex.CerrarLectura();
+        matCursando.CerrarLectura();
     }
 
     /**
@@ -299,7 +304,15 @@ public class Cuenta extends javax.swing.JFrame {
             new String [] {
                 "Nombre de materia"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jTable1.getTableHeader().setReorderingAllowed(false);
         jScrollPane3.setViewportView(jTable1);
         if (jTable1.getColumnModel().getColumnCount() > 0) {
@@ -317,7 +330,7 @@ public class Cuenta extends javax.swing.JFrame {
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, true, true
+                false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -335,7 +348,15 @@ public class Cuenta extends javax.swing.JFrame {
             new String [] {
                 "Sin Materias Cargadas"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane2.setViewportView(jTableMateriasCursando);
 
         jTabbedPane1.addTab("Materias Cursando", jScrollPane2);
@@ -362,9 +383,11 @@ public class Cuenta extends javax.swing.JFrame {
         try {
             //Se crea el frame MateriasFrame con la lista de materias que aun
             //no ha aprobado el alumno, su carrera  y nombre
+
             mf = new MateriasFrame(listaPendientes, carrera, nombre);
+//            System.out.println(listaPendientes.size());
             mf.setVisible(true);
-            mf.c = this;
+            mf.cuenta = this;
             this.setVisible(false);
         } catch (Exception e) {
             e.printStackTrace();
@@ -401,45 +424,16 @@ public class Cuenta extends javax.swing.JFrame {
 
         //se crea un matriz de objetos para recibir los datos de las materias
         //de la carrera del alumno
-        Object[][] matdb;
-        try {
-            //se guarda la informacion de la consulta de la base de datos en 
-            //la matriz de objetos
-            matdb = con.showAllData(carrera, "Select * from " + carrera);
-        } catch (Exception e) {
-            matdb = new Object[0][0];
-            JOptionPane.showMessageDialog(this, "Error en actualización, asegúrese de que tiene acceso a internet. Si el problema persiste pongase en contacto con el creador del programa.");
-        }
-
-        //se escriben los datos en el archivo txt de la carrera
-        if (matdb.length > 0) {
-            Archivo materiasBD = new Archivo("Materias por carrera\\" + carrera + ".txt");
-            materiasBD.crearEscritura();
-            for (int i = 0; i < matdb.length; i++) {
-                for (int j = 0; j < matdb[0].length; j++) {
-                    if (j < matdb[0].length - 1 && j != 1) {
-                        materiasBD.EscribirLinea(matdb[i][j] + " ");
-                    } else {
-                        materiasBD.EscribirLinea(matdb[i][j] + "");
-                    }
-
-                }
-                if (i < matdb.length - 1) {
-                    materiasBD.NuevaLinea();
-                }
-
-//                System.out.println("");
-            }
-            materiasBD.CerrarEscritura();
-            loggin.crearArchivos(carrera + ".txt");
-            JOptionPane.showMessageDialog(this, "Horarios de materias actualizados.");
-
-        }
+        opcion = 0;
+        t = new Thread(this);
+        t.start();
     }//GEN-LAST:event_jButActMateriasActionPerformed
 
     private void jButActDatosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButActDatosActionPerformed
         // TODO add your handling code here:
-        actualizarDatos();
+        opcion = 1;
+        t = new Thread(this);
+        t.start();
     }//GEN-LAST:event_jButActDatosActionPerformed
 
     public void actualizarDatos() {
@@ -502,7 +496,6 @@ public class Cuenta extends javax.swing.JFrame {
                         for (int j = 0; j < lista.size(); j++) {
                             coincide = false;
                             for (String[] kard1 : kard) {
-                                System.out.println(Integer.valueOf(kard1[2]) >= 70);
                                 if (lista.get(j).equals(kard1[1]) && Integer.valueOf(kard1[2]) >= 70) {
 
                                     coincide = true;
@@ -547,7 +540,8 @@ public class Cuenta extends javax.swing.JFrame {
                 e.printStackTrace();
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Error en actualización.");
+            JOptionPane.showMessageDialog(this, "Error en actualización, asegúrese de que tiene acceso a internet.\n"
+                    + " Si el problema persiste pongase en contacto con el creador del programa y/o con el Insituto Tecnologico de la Laguna.");
         }
     }
 
@@ -638,5 +632,56 @@ public class Cuenta extends javax.swing.JFrame {
     private javax.swing.JTable jTableKardex;
     private javax.swing.JTable jTableMateriasCursando;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void run() {
+        load.setVisible(true);
+        if (opcion == 0) {
+            jButActMaterias.setEnabled(false);
+            Object[][] matdb;
+            try {
+                //se guarda la informacion de la consulta de la base de datos en 
+                //la matriz de objetos
+                matdb = con.showAllData(carrera, "Select * from " + carrera);
+
+            } catch (Exception e) {
+                matdb = new Object[0][0];
+                JOptionPane.showMessageDialog(this, "Error en actualización, asegúrese de que tiene acceso a internet.\n"
+                        + " Si el problema persiste pongase en contacto con el creador del programa y/o con el Insituto Tecnologico de la Laguna.");
+            }
+
+            //se escriben los datos en el archivo txt de la carrera
+            if (matdb.length > 0) {
+                Archivo materiasBD = new Archivo("Materias por carrera\\" + carrera + ".txt");
+                materiasBD.crearEscritura();
+                for (int i = 0; i < matdb.length; i++) {
+                    for (int j = 0; j < matdb[0].length; j++) {
+                        if (j < matdb[0].length - 1 && j != 1) {
+                            materiasBD.EscribirLinea(matdb[i][j] + " ");
+                        } else {
+                            materiasBD.EscribirLinea(matdb[i][j] + "");
+                        }
+
+                    }
+                    if (i < matdb.length - 1) {
+                        materiasBD.NuevaLinea();
+                    }
+
+                }
+                materiasBD.CerrarEscritura();
+                loggin.crearArchivos(carrera + ".txt");
+                JOptionPane.showMessageDialog(this, "Horarios de materias actualizados.");
+            }
+            jButActMaterias.setEnabled(true);
+
+        } else {
+            jButActDatos.setEnabled(false);
+            actualizarDatos();
+            jButActDatos.setEnabled(true);
+
+        }
+        load.setVisible(false);
+
+    }
 
 }
